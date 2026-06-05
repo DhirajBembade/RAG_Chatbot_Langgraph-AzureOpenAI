@@ -340,15 +340,391 @@ Total context = system_prompt + chat_history + rag_chunks + user_query + buffer
 
 ---
 
+## 13. AWS Bedrock
+
+AWS Bedrock is a **fully managed service** that gives access to foundation models from multiple providers via a single AWS API — no infrastructure to manage.
+
+### Model Families Available on Bedrock
+
+| Provider | Models | Strengths |
+|---|---|---|
+| **Anthropic** | Claude Opus 4.7/4.8, Sonnet 4.6, Haiku 4.5 | Best reasoning, long-context, agentic coding |
+| **Amazon Nova** | Nova Micro, Lite, Pro, Premier | Cost-optimized, tight AWS integration |
+| **Meta Llama** | Llama 4 Maverick, Llama 4 Scout, Llama 3.3 70B | Open weights, general purpose |
+| **Mistral** | Mistral Large, Mistral Small | Multilingual, coding |
+| **Cohere** | Command R, Command R+ | Enterprise RAG, retrieval-focused |
+| **Amazon Titan** | Titan Text, Titan Embeddings V2 | Cheap, native AWS, embedding anchor |
+| **Stability AI** | Stable Diffusion | Image generation |
+
+### Amazon Nova Models (Amazon's Own)
+| Model | Best Use Case |
+|---|---|
+| Nova Micro | Fastest, text-only, lowest cost |
+| Nova Lite | Multimodal, fast, affordable |
+| Nova Pro | High accuracy, complex multimodal tasks |
+| Nova Premier | Most capable Amazon model, long-context agents |
+
+### AWS Bedrock Key Services
+| Service | What It Does |
+|---|---|
+| **Bedrock Knowledge Bases** | Managed RAG — connect S3 docs, auto-chunks, embeds, stores in vector DB |
+| **Bedrock Agents** | Build multi-step AI agents with tool use and memory |
+| **Bedrock Guardrails** | Content filtering, PII detection, hallucination detection |
+| **Bedrock Model Evaluation** | Run automated evals on your models |
+| **Bedrock Flows** | Visual workflow builder for LLM pipelines |
+
+### When to Choose Bedrock
+- Already on AWS infrastructure (IAM, S3, Lambda)
+- Need compliance (SOC2, HIPAA, GDPR) with familiar AWS controls
+- Want managed RAG without building your own vector pipeline
+- Multi-model flexibility from a single API
+
+---
+
+## 14. Azure AI Foundry
+
+Azure AI Foundry is Microsoft's **unified platform** for building, deploying, and managing AI applications. It supersedes and consolidates Azure OpenAI Service and Azure Machine Learning Studio into one surface.
+
+### Azure AI Foundry vs Azure OpenAI Service
+
+| | Azure OpenAI Service | Azure AI Foundry |
+|---|---|---|
+| **Scope** | OpenAI models only | OpenAI + Microsoft + 3rd-party models |
+| **Model Catalog** | GPT-4o, GPT-5.x, Whisper, DALL-E | All OpenAI + Phi-4, Llama, Mistral, Cohere, etc. |
+| **Agent Support** | Limited | Full agent workflows, multi-agent orchestration |
+| **Evaluation** | No built-in | Built-in model evaluation and monitoring |
+| **Fine-tuning** | Basic | Advanced fine-tuning and RLHF |
+| **Best For** | Simple GPT API calls | Full AI application lifecycle management |
+
+### Models in Azure AI Foundry Model Catalog
+
+| Provider | Models |
+|---|---|
+| OpenAI | GPT-5.5, GPT-5.4, GPT-4o, o3, DALL-E, Whisper |
+| Microsoft | Phi-4, Phi-3.5, Phi-3 Mini (SLMs) |
+| Meta | Llama 4, Llama 3.3 |
+| Mistral AI | Mistral Large, Mistral Small |
+| Cohere | Command R, Command R+ |
+| NVIDIA | Nemotron models |
+
+### Microsoft Phi Models (Small Language Models)
+| Model | Params | Best Use Case |
+|---|---|---|
+| Phi-4 | 14B | Low-latency, reasoning, coding — efficient alternative to GPT-4o |
+| Phi-3.5 Mini | 3.8B | Edge / mobile deployment |
+| Phi-3 Mini | 3.8B | On-device, fast inference, Windows Copilot+ |
+
+### Azure AI Foundry Key Services
+| Service | What It Does |
+|---|---|
+| **Azure AI Search** | Vector + keyword hybrid search, RAG backbone |
+| **Azure Content Safety** | Detects harmful content, PII, prompt injections |
+| **Prompt Flow** | Visual LLM pipeline builder with evaluation |
+| **Azure AI Document Intelligence** | Extract tables, forms, diagrams from PDFs |
+| **Azure AI Speech** | STT / TTS, real-time transcription |
+| **Azure ML** | Model training, fine-tuning, MLOps |
+
+---
+
+## 15. Embedding Models
+
+Embedding models convert text (or images) into **dense numerical vectors**. These vectors capture semantic meaning — similar texts produce vectors that are close together in vector space. Embeddings power semantic search, RAG retrieval, clustering, and classification.
+
+```
+"The cat sat on the mat"  →  [0.21, -0.43, 0.87, ...]  (384 or 1536 numbers)
+"A feline rested on a rug" →  [0.19, -0.41, 0.85, ...]  (very close → similar meaning)
+```
+
+### Paid / Cloud Embedding Models
+
+| Provider | Model | Dimensions | Context | Notes |
+|---|---|---|---|---|
+| **OpenAI / Azure** | text-embedding-3-small | 1,536 | 8K tokens | Best cost/quality balance, most widely used |
+| **OpenAI / Azure** | text-embedding-3-large | 3,072 | 8K tokens | Highest quality OpenAI embedding |
+| **OpenAI / Azure** | text-embedding-ada-002 | 1,536 | 8K tokens | Legacy, replaced by v3 models |
+| **AWS Bedrock** | Amazon Titan Embeddings V2 | 1,024 | 8K tokens | Native AWS, cost-effective, multilingual |
+| **AWS Bedrock** | Cohere Embed v3 | 1,024 | 512 tokens | Best for retrieval tasks, multilingual |
+| **Google Vertex AI** | text-embedding-004 | 768 | 2K tokens | Google's current recommended embedding |
+| **Google Vertex AI** | textembedding-gecko@003 | 768 | 3K tokens | Older but widely used |
+| **Voyage AI** | voyage-3 | 1,024 | 32K tokens | Top MTEB scores, great for RAG |
+| **Cohere** | embed-english-v3.0 | 1,024 | 512 tokens | Strong for English retrieval |
+
+### Open-Source / HuggingFace Embedding Models
+
+| Model | Dimensions | Context | Size | Best For |
+|---|---|---|---|---|
+| **all-MiniLM-L6-v2** | 384 | 512 tokens | 22M params | Fast, lightweight — best for prototyping / edge |
+| **all-MiniLM-L12-v2** | 384 | 512 tokens | 33M params | Slightly better quality than L6, still fast |
+| **all-mpnet-base-v2** | 768 | 512 tokens | 109M params | Better quality, semantic search |
+| **bge-small-en-v1.5** | 384 | 512 tokens | 33M params | Fast, good quality for English |
+| **bge-base-en-v1.5** | 768 | 512 tokens | 109M params | Mid-tier, strong retrieval |
+| **bge-large-en-v1.5** | 1,024 | 512 tokens | 335M params | High quality English retrieval |
+| **BAAI/bge-m3** | 1,024 | 8K tokens | 570M params | Multilingual, long-context, #1 most downloaded |
+| **nomic-embed-text-v1.5** | 768 | 8K tokens | 137M params | Open-source, long context, MoE architecture |
+| **e5-large-v2** | 1,024 | 512 tokens | 335M params | Strong on MTEB benchmark |
+| **Qwen3-Embedding** | 1,024–7K | 32K tokens | Multiple sizes | Best open-weight MTEB scores as of 2026 |
+| **gte-large** | 1,024 | 512 tokens | 335M params | Strong general embedding |
+
+### Quick Comparison: allMiniLM vs BGE vs Nomic
+
+| | all-MiniLM-L6-v2 | bge-m3 | nomic-embed-text |
+|---|---|---|---|
+| Dimensions | 384 | 1,024 | 768 |
+| Context | 512 tokens | 8,192 tokens | 8,192 tokens |
+| Language | English | Multilingual | Multilingual |
+| Speed | Very fast | Moderate | Fast |
+| Quality | Good (prototype) | Excellent (production) | Very good |
+| License | Apache 2.0 | MIT | Apache 2.0 |
+| Use case | Local dev, edge | Production RAG | Long-doc RAG |
+
+### How to Use (LangChain)
+```python
+# OpenAI (paid)
+from langchain_openai import AzureOpenAIEmbeddings
+embeddings = AzureOpenAIEmbeddings(model="text-embedding-3-small")
+
+# HuggingFace (free, local)
+from langchain_huggingface import HuggingFaceEmbeddings
+embeddings = HuggingFaceEmbeddings(model_name="BAAI/bge-m3")
+
+# AWS Bedrock (paid)
+from langchain_aws import BedrockEmbeddings
+embeddings = BedrockEmbeddings(model_id="amazon.titan-embed-text-v2:0")
+```
+
+---
+
+## 16. Databases — SQL, NoSQL, and Vector
+
+---
+
+### SQL (Relational Databases)
+
+**What it is:** Data stored in structured tables with rows and columns. Relationships between tables are enforced via foreign keys. Uses **SQL** (Structured Query Language) to query data.
+
+**Key properties (ACID):**
+- **A**tomicity — transaction fully completes or fully rolls back
+- **C**onsistency — data always valid per defined rules
+- **I**solation — concurrent transactions don't interfere
+- **D**urability — committed data survives crashes
+
+**When to use:**
+- Structured, predictable data (users, orders, invoices)
+- Complex joins across multiple tables
+- Strong consistency required (banking, healthcare)
+
+| Database | Notes |
+|---|---|
+| **PostgreSQL** | Most feature-rich open-source SQL DB; supports JSON, vectors via pgvector |
+| **MySQL / MariaDB** | Fast reads, widely used in web apps |
+| **SQLite** | Serverless, file-based — perfect for local dev and edge apps |
+| **Microsoft SQL Server** | Enterprise-grade, native Azure integration |
+| **Amazon RDS / Aurora** | Managed SQL on AWS (PostgreSQL or MySQL engine) |
+
+---
+
+### NoSQL (Non-Relational Databases)
+
+**What it is:** Flexible schema databases designed for scale, speed, and unstructured or semi-structured data. "NoSQL" does NOT mean "no SQL ever" — it means "not only SQL."
+
+**When to use:**
+- Variable or evolving schema (user profiles with different fields)
+- High-volume reads/writes at scale
+- Distributed, globally replicated data
+- Hierarchical or nested data structures
+
+#### NoSQL Types and Examples
+
+| Type | How Data is Stored | Examples | Best For |
+|---|---|---|---|
+| **Document** | JSON-like documents in collections | MongoDB, Firestore, CouchDB | User profiles, product catalogs, CMS |
+| **Key-Value** | Simple key → value pairs | Redis, DynamoDB, Memcached | Caching, sessions, leaderboards |
+| **Column-Family** | Rows with dynamic column sets | Cassandra, HBase, ScyllaDB | Time-series, IoT, write-heavy workloads |
+| **Graph** | Nodes and edges (relationships) | Neo4j, Amazon Neptune, ArangoDB | Social networks, fraud detection, knowledge graphs |
+| **Time-Series** | Timestamped data optimized for range queries | InfluxDB, TimescaleDB, QuestDB | Metrics, logs, sensor data |
+
+#### SQL vs NoSQL — Key Differences
+
+| | SQL | NoSQL |
+|---|---|---|
+| Schema | Fixed, predefined | Flexible, dynamic |
+| Scaling | Vertical (bigger machine) | Horizontal (more machines) |
+| Consistency | Strong (ACID) | Eventual (CAP theorem trade-off) |
+| Joins | Easy, built-in | Manual / application-level |
+| Query language | SQL (standardized) | Varies per DB |
+| Best for | Structured, relational data | Scale, flexibility, unstructured data |
+
+---
+
+### Vector Databases
+
+**What it is:** A database optimized for storing and searching **high-dimensional vectors** (embeddings). Instead of exact matches like SQL, it finds the **nearest neighbors** — vectors that are semantically closest to a query vector.
+
+**Why it exists:** Traditional databases can't efficiently search across millions of 1024-dimensional float arrays. Vector DBs use specialized indexing algorithms (HNSW, IVF) to do this in milliseconds.
+
+#### How Vector Search Works Internally
+
+```
+1. EMBED   — Convert your text/image to a vector using an embedding model
+             "What is RAG?" → [0.21, -0.43, 0.87, ..., 0.12]  (1024 numbers)
+
+2. STORE   — Save vectors + metadata in the vector DB with an index
+
+3. QUERY   — Convert user's question to a vector the same way
+
+4. SEARCH  — Find top-K vectors closest to the query vector
+             using similarity: cosine similarity, dot product, or L2 distance
+
+5. RETURN  — Return the original text chunks associated with those vectors
+```
+
+#### Similarity Metrics
+
+| Metric | Formula | When to Use |
+|---|---|---|
+| **Cosine Similarity** | angle between vectors | Most common — normalized text embeddings |
+| **Dot Product** | magnitude × direction | When vectors aren't normalized |
+| **Euclidean (L2)** | straight-line distance | Image embeddings, spatial data |
+
+#### HNSW Index — How It Works Internally
+
+HNSW (Hierarchical Navigable Small World) is the dominant indexing algorithm in all major vector DBs.
+
+```
+Layer 2 (sparse):   A ————————————— E
+                         \
+Layer 1 (medium):   A — B — C — D — E
+                               |
+Layer 0 (all nodes): A-B-C-D-[E]-F-G-H  ← final precision search here
+```
+
+- Vectors are organized into **multiple graph layers**
+- **Upper layers** = sparse — big jumps across the space (rough navigation)
+- **Bottom layer** = all nodes — fine-grained neighbor search
+- Search starts at the top, greedily moves toward the query, drops down a layer, repeats
+- Insertion assigns each new vector a random max-layer and connects it to its neighbors
+- Search complexity: **O(log N)** — fast even at billions of vectors
+
+#### IVF (Inverted File Index) — Alternative to HNSW
+
+- Divides vector space into clusters (Voronoi cells) using k-means
+- At query time, only searches the closest clusters, not all vectors
+- Faster for very large datasets; less accurate than HNSW at the same recall level
+- Used by FAISS
+
+---
+
+### Vector Database Comparison
+
+| Database | Type | Language | Best For | Hosting |
+|---|---|---|---|---|
+| **Pinecone** | Managed only | — | Production, enterprise, auto-scaling | Cloud only |
+| **Qdrant** | Open source + cloud | Rust | Fastest latency (~4ms p50), filtering, production | Self-host or cloud |
+| **Weaviate** | Open source + cloud | Go | Hybrid search (vector + keyword), built-in vectorizers | Self-host or cloud |
+| **Milvus / Zilliz** | Open source + cloud | C++/Go | Billion-scale, GPU search, enterprise | Self-host or cloud |
+| **Chroma** | Open source | Python | Local dev, prototyping, simplest API | Local or self-host |
+| **FAISS** | Library (not a DB) | C++/Python | In-memory search, research, no persistence | Embedded/local |
+| **pgvector** | PostgreSQL extension | SQL | Adding vector search to existing Postgres DB | Self-host or managed |
+| **Redis VSS** | Extension of Redis | C | Caching + vector search in one, low latency | Self-host or cloud |
+| **LanceDB** | Open source | Rust | Serverless, embedded, great for notebooks/local RAG | Local or cloud |
+
+#### Detailed Differences
+
+| | Pinecone | Qdrant | Chroma | pgvector |
+|---|---|---|---|---|
+| Setup | SaaS, instant | Docker / pip | pip install | Postgres extension |
+| Latency | ~8ms p50 | ~4ms p50 | Variable | Depends on Postgres |
+| Filtering | Yes | Best-in-class | Basic | Full SQL |
+| Persistence | Yes | Yes | Optional | Yes (Postgres) |
+| Cost | Paid | Free self-host | Free | Free |
+| Production ready | Yes | Yes | Dev only | Yes (with tuning) |
+| Transactions | No | No | No | Yes (ACID) |
+
+#### When to Use Which
+
+| Scenario | Best Choice |
+|---|---|
+| Prototyping / learning RAG | **Chroma** (simplest) |
+| Production RAG, fast setup | **Pinecone** (managed) or **Qdrant** (self-hosted) |
+| Already using PostgreSQL | **pgvector** (no extra service) |
+| Billion+ vectors, GPU search | **Milvus / Zilliz** |
+| Hybrid search (vector + keyword) | **Weaviate** or **Azure AI Search** |
+| Caching + vector in one layer | **Redis VSS** |
+| Local notebooks, no server | **FAISS** or **LanceDB** |
+
+#### Code Example — Chroma (Simplest)
+```python
+import chromadb
+from langchain_huggingface import HuggingFaceEmbeddings
+
+client = chromadb.Client()
+collection = client.create_collection("my_docs")
+
+# Add documents
+collection.add(
+    documents=["RAG stands for Retrieval Augmented Generation", "LangGraph is a library for agents"],
+    ids=["doc1", "doc2"]
+)
+
+# Query
+results = collection.query(query_texts=["What is RAG?"], n_results=2)
+```
+
+#### Code Example — Qdrant (Production)
+```python
+from qdrant_client import QdrantClient
+from qdrant_client.models import Distance, VectorParams
+
+client = QdrantClient(url="http://localhost:6333")
+client.create_collection(
+    collection_name="my_docs",
+    vectors_config=VectorParams(size=384, distance=Distance.COSINE)
+)
+```
+
+---
+
+## 17. Full Stack Reference — RAG Pipeline Components
+
+```
+User Query
+    ↓
+[Embedding Model]  →  Query Vector
+    ↓
+[Vector Database]  →  Top-K Similar Chunks  (Qdrant / Pinecone / pgvector)
+    ↓
+[LLM]              →  Final Answer          (Claude / GPT-5.4 / Llama)
+    ↓
+[SQL / NoSQL DB]   →  User history, metadata, sessions  (PostgreSQL / MongoDB)
+```
+
+| Layer | Open Source Option | Paid/Managed Option |
+|---|---|---|
+| Embedding | bge-m3, all-MiniLM | text-embedding-3-small (OpenAI/Azure) |
+| Vector DB | Qdrant, Chroma, pgvector | Pinecone, Weaviate Cloud, Azure AI Search |
+| LLM | Llama 3.3 70B, Qwen 3.6 | Claude Sonnet 4.6, GPT-5.4 |
+| Document store | MongoDB, SQLite | DynamoDB, Cosmos DB, Firestore |
+| Orchestration | LangChain, LlamaIndex | Azure AI Foundry, AWS Bedrock Agents |
+
+---
+
 ## Sources
 
 - [Anthropic Claude Models Overview](https://platform.claude.com/docs/en/about-claude/models/overview)
 - [Anthropic Context Windows Docs](https://platform.claude.com/docs/en/build-with-claude/context-windows)
 - [OpenAI GPT-5.4 Model Docs](https://developers.openai.com/api/docs/models/gpt-5.4)
-- [OpenAI GPT-5.4 Mini Model Docs](https://developers.openai.com/api/docs/models/gpt-5.4-mini)
-- [OpenAI GPT-5.4 Nano Model Docs](https://developers.openai.com/api/docs/models/gpt-5.4-nano)
+- [OpenAI GPT-5.4 Mini Docs](https://developers.openai.com/api/docs/models/gpt-5.4-mini)
+- [OpenAI GPT-5.4 Nano Docs](https://developers.openai.com/api/docs/models/gpt-5.4-nano)
 - [OpenAI GPT-5.5 Model Docs](https://developers.openai.com/api/docs/models/gpt-5.5)
-- [Liquid AI LFM2.5-8B-A1B Blog](https://www.liquid.ai/blog/lfm2-5-8b-a1b)
-- [Qwen 3.6 Plus — 1M Context Guide](https://www.digitalapplied.com/blog/qwen-3-6-plus-1m-context-always-on-cot-guide)
+- [AWS Bedrock Supported Models](https://docs.aws.amazon.com/bedrock/latest/userguide/models-supported.html)
+- [Azure AI Foundry vs Azure OpenAI](https://az365.ai/blog/azure-ai-foundry-vs-azure-openai-2026-decision/)
+- [Azure Foundry Models Catalog](https://learn.microsoft.com/en-us/azure/foundry/foundry-models/concepts/models-sold-directly-by-azure)
+- [Best Embedding Models 2026 — Milvus Blog](https://milvus.io/blog/choose-embedding-model-rag-2026.md)
+- [Open Source Embedding Models 2026](https://presenc.ai/research/best-open-weight-embedding-models-2026)
+- [Vector Database Comparison 2026](https://reintech.io/blog/vector-database-comparison-2026-pinecone-weaviate-milvus-qdrant-chroma)
+- [HNSW Internals — Pinecone](https://www.pinecone.io/learn/series/faiss/hnsw/)
+- [HNSW Indexing Fundamentals — Qdrant](https://qdrant.tech/course/essentials/day-2/what-is-hnsw/)
+- [Liquid AI LFM2.5-8B-A1B](https://www.liquid.ai/blog/lfm2-5-8b-a1b)
+- [Qwen 3.6 Plus 1M Context](https://www.digitalapplied.com/blog/qwen-3-6-plus-1m-context-always-on-cot-guide)
 - [Gemma 4 Developer Guide](https://lushbinary.com/blog/gemma-4-developer-guide-benchmarks-architecture-local-deployment-2026/)
 - [Azure OpenAI Quotas and Limits](https://learn.microsoft.com/en-us/azure/foundry/openai/quotas-limits)
