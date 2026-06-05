@@ -1,0 +1,23 @@
+[project]
+name = "rag-chatbot-langgraph-azureopenai"
+version = "0.1.0"
+description = "Agentic RAG chatbot using LangGraph, Azure OpenAI, and Streamlit"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "streamlit",
+    "python-dotenv",
+    "requests",
+    "matplotlib",
+    "langchain-openai",
+    "langchain-community",
+    "langchain-core",
+    "langchain-text-splitters",
+    "langgraph",
+    "langgraph-checkpoint-sqlite",
+    "faiss-cpu",
+    "pypdf>=4.0.0",
+    "wikipedia",
+    "duckduckgo-search",
+    "ddgs",
+]

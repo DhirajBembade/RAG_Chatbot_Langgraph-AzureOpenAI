@@ -1,0 +1,31 @@
+# Azure OpenAI + LangChain ecosystem
+langchain-openai>=0.2.0
+langchain-community>=0.3.0
+langchain-core>=0.3.0
+langchain-text-splitters>=0.3.0
+langchain-mcp-adapters>=0.2.2
+langsmith>=0.1.0
+
+# LangGraph + persistence
+langgraph>=0.2.0
+langgraph-checkpoint-sqlite>=3.0.0
+aiosqlite>=0.22.1
+
+# MCP
+mcp>=1.27.2
+
+# Vector store & document loading
+faiss-cpu>=1.8.0
+pypdf>=4.0.0
+
+# Tool backends
+wikipedia>=1.4.0
+duckduckgo-search
+ddgs>=9.0.0
+arxiv>=2.0.0
+
+# App & utilities
+streamlit>=1.40.0
+python-dotenv>=1.0.0
+requests>=2.31.0
+matplotlib
