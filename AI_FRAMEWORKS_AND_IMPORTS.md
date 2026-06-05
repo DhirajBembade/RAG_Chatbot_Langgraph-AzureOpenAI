@@ -825,3 +825,885 @@ pip install opentelemetry-sdk  # Open standard tracing
 | `unstructured` | Advanced PDF/doc parsing with layout understanding and OCR |
 | `langsmith` | Trace and debug LangChain/LangGraph runs — essential for production |
 | `boto3` | AWS SDK — required for Bedrock authentication and S3 access |
+| `ragas` | Evaluate RAG pipelines — faithfulness, context recall, answer relevancy |
+| `deepeval` | CI/CD LLM testing — 50+ metrics, assert-based unit tests for LLM outputs |
+| `trulens` | Inline tracing + evaluation — grades every retrieval and generation call |
+| `langfuse` | Open-source LLM observability — traces, evals, prompt management |
+| `nemoguardrails` | NVIDIA's dialog safety toolkit — jailbreak, prompt injection, hallucination |
+| `guardrails-ai` | Composable validators for LLM I/O — PII, toxicity, schema enforcement |
+| `azure-ai-contentsafety` | Azure SDK for content moderation — hate, violence, self-harm, sexual |
+| `azure-ai-evaluation` | Azure SDK for evaluating LLM outputs — built-in + custom evaluators |
+
+---
+
+## Part 7 — Guardrails
+
+Guardrails are safety layers that **validate, filter, or block** LLM inputs and outputs before they reach users or downstream systems. They protect against:
+- Prompt injection / jailbreaks
+- Toxic, harmful, or off-topic responses
+- PII leakage in outputs
+- Hallucinations and factual errors
+- Schema violations in structured output
+
+---
+
+### Types of Guardrails
+
+| Type | When Applied | Example |
+|---|---|---|
+| **Input guardrails** | Before sending to LLM | Block prompt injections, profanity, off-topic queries |
+| **Output guardrails** | After LLM responds | Validate JSON schema, detect PII, check factuality |
+| **Topical guardrails** | Both | Restrict LLM to specific domains (e.g., only answer HR questions) |
+| **Safety guardrails** | Both | Block hate speech, self-harm, violence, CSAM |
+| **Structural guardrails** | Output only | Enforce Pydantic model, JSON format, required fields |
+
+---
+
+### 1. Azure Content Safety (Cloud — Azure)
+
+Microsoft's managed API for detecting harmful content across text and images.
+
+```python
+pip install azure-ai-contentsafety
+```
+
+```python
+from azure.ai.contentsafety import ContentSafetyClient
+from azure.ai.contentsafety.models import (
+    AnalyzeTextOptions,      # Input model for text analysis
+    TextCategory,            # Enum: HATE, SELF_HARM, SEXUAL, VIOLENCE
+)
+from azure.core.credentials import AzureKeyCredential
+
+client = ContentSafetyClient(
+    endpoint="https://<resource>.cognitiveservices.azure.com/",
+    credential=AzureKeyCredential("<api-key>"),
+)
+
+request = AnalyzeTextOptions(text="User message here")
+response = client.analyze_text(request)
+
+# Check each category — severity 0-6 (0 = safe, 6 = severe)
+for item in response.categories_analysis:
+    print(f"{item.category}: severity={item.severity}")
+    if item.severity > 2:
+        raise ValueError(f"Blocked: {item.category}")
+```
+
+| Category | Detects |
+|---|---|
+| `HATE` | Hate speech, discrimination |
+| `SELF_HARM` | Suicide, self-injury content |
+| `SEXUAL` | Explicit sexual content |
+| `VIOLENCE` | Graphic violence, threats |
+
+---
+
+### 2. AWS Bedrock Guardrails (Cloud — AWS)
+
+Managed guardrails built into Bedrock — applied automatically on every model call.
+
+```python
+import boto3
+
+bedrock = boto3.client("bedrock-runtime", region_name="us-east-1")
+
+# Apply guardrail on inference
+response = bedrock.invoke_model(
+    modelId="anthropic.claude-sonnet-4-6-20251022-v1:0",
+    guardrailIdentifier="<guardrail-id>",   # Created in Bedrock console
+    guardrailVersion="DRAFT",
+    body=json.dumps({
+        "messages": [{"role": "user", "content": user_message}],
+        "max_tokens": 1024,
+    }),
+)
+```
+
+**What Bedrock Guardrails cover:**
+- Topic denial (block off-topic queries)
+- Content filters (hate, insults, violence, misconduct)
+- Word filters (custom blocklists)
+- PII detection and redaction (email, phone, SSN, credit card)
+- Grounding check (detect hallucinations against a ground truth)
+- Contextual grounding (verify answer is grounded in context)
+
+---
+
+### 3. NeMo Guardrails (Open Source — NVIDIA)
+
+Programmable dialog safety toolkit — uses a DSL called **Colang** to define safe conversation flows.
+
+```bash
+pip install nemoguardrails
+```
+
+```python
+from nemoguardrails import RailsConfig, LLMRails
+
+# config.yml defines your rails in Colang
+config = RailsConfig.from_path("./guardrails_config/")
+rails = LLMRails(config)
+
+# Apply rails on every LLM call
+response = await rails.generate_async(
+    messages=[{"role": "user", "content": "User message"}]
+)
+```
+
+**Colang config example (`config.yml`):**
+```yaml
+models:
+  - type: main
+    engine: openai
+    model: gpt-4o
+
+rails:
+  input:
+    flows:
+      - self check input       # Block prompt injections
+  output:
+    flows:
+      - self check output      # Block harmful responses
+```
+
+**What NeMo Guardrails cover:**
+- Jailbreak detection
+- Prompt injection protection
+- Topical rails (stay on topic)
+- Fact-checking against knowledge base
+- Hallucination detection
+- Dialog management via Colang flows
+
+---
+
+### 4. Guardrails AI (Open Source)
+
+Composable validator framework — define validators for LLM I/O using pre-built or custom validators from Guardrails Hub.
+
+```bash
+pip install guardrails-ai
+guardrails hub install hub://guardrails/toxic_language
+guardrails hub install hub://guardrails/detect_pii
+```
+
+```python
+from guardrails import Guard
+from guardrails.hub import ToxicLanguage, DetectPII
+
+guard = Guard().use_many(
+    ToxicLanguage(threshold=0.5, on_fail="exception"),
+    DetectPII(pii_entities=["EMAIL_ADDRESS", "PHONE_NUMBER"], on_fail="fix"),
+)
+
+# Validate LLM output
+validated_output = guard.validate(llm_output)
+```
+
+**on_fail options:**
+| Option | Behaviour |
+|---|---|
+| `"exception"` | Raise `ValidationError` — block the response |
+| `"fix"` | Auto-fix the output (e.g., redact PII) |
+| `"filter"` | Remove the violating part |
+| `"reask"` | Re-prompt the LLM to fix its output |
+| `"noop"` | Log the violation but pass through |
+
+---
+
+### 5. Llama Guard (Open Source — Meta)
+
+A fine-tuned LLaMA model that classifies inputs/outputs as **safe or unsafe** across 14 harm categories.
+
+```python
+from transformers import AutoTokenizer, AutoModelForCausalLM
+
+# Run Llama Guard locally
+tokenizer = AutoTokenizer.from_pretrained("meta-llama/Llama-Guard-3-8B")
+model = AutoModelForCausalLM.from_pretrained("meta-llama/Llama-Guard-3-8B")
+
+# Returns "safe" or "unsafe\nS1" (with category code)
+```
+
+**Use case:** Free, self-hosted safety classifier — good for private/on-prem deployments where you can't send data to Azure or AWS.
+
+---
+
+### 6. Pydantic Output Guardrails (Structural)
+
+Force the LLM to always return structured, validated output.
+
+```python
+from pydantic import BaseModel, Field, validator
+from langchain_core.output_parsers import PydanticOutputParser
+
+class ChatResponse(BaseModel):
+    answer: str = Field(description="The answer to the question")
+    sources: list[str] = Field(description="List of source document names")
+    confidence: float = Field(ge=0.0, le=1.0, description="Confidence score 0-1")
+
+    @validator("confidence")
+    def confidence_range(cls, v):
+        if not 0 <= v <= 1:
+            raise ValueError("Confidence must be between 0 and 1")
+        return v
+
+parser = PydanticOutputParser(pydantic_object=ChatResponse)
+chain = prompt | llm | parser  # LLM is forced into this schema
+```
+
+---
+
+## Part 8 — Evaluation Metrics
+
+Evaluation tells you **how good your RAG pipeline actually is** — not just "does it run" but "does it answer correctly, relevantly, and faithfully."
+
+---
+
+### RAG Evaluation Dimensions
+
+```
+RAG Quality = Retrieval Quality × Generation Quality
+
+Retrieval Quality:
+  - Did I retrieve the RIGHT documents? (Context Precision)
+  - Did I retrieve ALL the relevant documents? (Context Recall)
+
+Generation Quality:
+  - Is the answer grounded in the retrieved docs? (Faithfulness)
+  - Does the answer actually address the question? (Answer Relevancy)
+```
+
+---
+
+### Core RAGAS Metrics
+
+```bash
+pip install ragas
+```
+
+| Metric | Measures | Score Range | Formula Idea |
+|---|---|---|---|
+| **Faithfulness** | Is the answer factually consistent with retrieved context? | 0 – 1 | Claims in answer ÷ total claims |
+| **Answer Relevancy** | Does the answer address the user's question? | 0 – 1 | Semantic similarity of answer to question |
+| **Context Precision** | Are the retrieved docs actually relevant (no noise)? | 0 – 1 | Relevant docs ÷ total retrieved docs |
+| **Context Recall** | Did retrieval cover all aspects of the ground-truth answer? | 0 – 1 | Ground-truth claims found in context ÷ total |
+| **Answer Correctness** | Is the answer factually correct vs. ground truth? | 0 – 1 | Requires reference answer |
+| **Answer Similarity** | Semantic similarity between answer and reference | 0 – 1 | Cosine similarity of embeddings |
+| **Context Entities Recall** | Did retrieved docs contain the right named entities? | 0 – 1 | Entity overlap |
+| **Noise Sensitivity** | Does the model get confused by irrelevant context? | 0 – 1 | Lower is better |
+
+```python
+from ragas import evaluate
+from ragas.metrics import (
+    faithfulness,
+    answer_relevancy,
+    context_precision,
+    context_recall,
+    answer_correctness,
+)
+from datasets import Dataset
+
+# Your RAG evaluation dataset
+data = {
+    "question": ["What is RAG?"],
+    "answer": ["RAG stands for Retrieval Augmented Generation..."],
+    "contexts": [["RAG is a technique that retrieves documents..."]],
+    "ground_truth": ["RAG is Retrieval-Augmented Generation, a method..."],
+}
+
+dataset = Dataset.from_dict(data)
+result = evaluate(
+    dataset=dataset,
+    metrics=[faithfulness, answer_relevancy, context_precision, context_recall],
+    llm=llm,
+    embeddings=embeddings,
+)
+print(result)  # {'faithfulness': 0.92, 'answer_relevancy': 0.87, ...}
+```
+
+---
+
+### DeepEval — CI/CD LLM Testing
+
+Test your LLM like unit tests — assert-based, runs in pytest, blocks bad deployments.
+
+```bash
+pip install deepeval
+```
+
+```python
+from deepeval import assert_test
+from deepeval.test_case import LLMTestCase
+from deepeval.metrics import (
+    FaithfulnessMetric,          # Same as RAGAS faithfulness
+    AnswerRelevancyMetric,       # Answer relevance to question
+    ContextualPrecisionMetric,   # Retrieval precision
+    ContextualRecallMetric,      # Retrieval recall
+    HallucinationMetric,         # Detect hallucinations
+    ToxicityMetric,              # Detect toxic outputs
+    BiasMetric,                  # Detect biased outputs
+    GEval,                       # Custom metric defined in natural language
+)
+
+test_case = LLMTestCase(
+    input="What is RAG?",
+    actual_output="RAG stands for Retrieval Augmented Generation...",
+    expected_output="RAG is Retrieval-Augmented Generation...",
+    retrieval_context=["RAG is a technique that retrieves documents..."],
+)
+
+# Run in pytest — fails CI if score < threshold
+assert_test(test_case, [
+    FaithfulnessMetric(threshold=0.8),
+    AnswerRelevancyMetric(threshold=0.7),
+])
+```
+
+---
+
+### TruLens — Inline Tracing + Evaluation
+
+Couples tracing with evaluation — every single LLM call and retrieval is scored in real time.
+
+```bash
+pip install trulens trulens-providers-openai
+```
+
+```python
+from trulens.core import TruSession, Feedback
+from trulens.providers.openai import OpenAI as TruOpenAI
+from trulens.apps.langchain import TruChain
+
+session = TruSession()
+provider = TruOpenAI()
+
+# Define feedback functions (evaluators)
+f_faithfulness = Feedback(provider.groundedness_measure_with_cot_reasons).on_input_output()
+f_relevance = Feedback(provider.relevance).on_input_output()
+
+# Wrap your RAG chain
+tru_chain = TruChain(
+    rag_chain,
+    app_name="my-rag-app",
+    feedbacks=[f_faithfulness, f_relevance],
+)
+
+with tru_chain:
+    result = rag_chain.invoke({"question": "What is RAG?"})
+
+session.get_leaderboard()  # View scores across all runs
+```
+
+---
+
+### LangSmith — Tracing & Evaluation (LangChain Native)
+
+LangChain's managed observability platform — trace every chain, agent, and LLM call automatically.
+
+```bash
+pip install langsmith
+```
+
+```bash
+# Set environment variables
+LANGCHAIN_TRACING_V2=true
+LANGCHAIN_API_KEY=<your-langsmith-key>
+LANGCHAIN_PROJECT=my-rag-project
+```
+
+```python
+# No code change needed — just set env vars above
+# All LangChain / LangGraph calls are automatically traced
+
+# For custom evaluation datasets
+from langsmith import Client
+
+client = Client()
+dataset = client.create_dataset("rag-eval-dataset")
+client.create_examples(
+    inputs=[{"question": "What is RAG?"}],
+    outputs=[{"answer": "RAG is Retrieval-Augmented Generation..."}],
+    dataset_id=dataset.id,
+)
+
+# Run evaluation
+from langsmith.evaluation import evaluate as ls_evaluate
+
+results = ls_evaluate(
+    rag_chain,
+    data="rag-eval-dataset",
+    evaluators=[faithfulness_evaluator],
+)
+```
+
+---
+
+### Azure AI Evaluation SDK
+
+Microsoft's official SDK for evaluating LLM outputs on Azure.
+
+```bash
+pip install azure-ai-evaluation
+```
+
+```python
+from azure.ai.evaluation import (
+    RelevanceEvaluator,       # Is answer relevant to question?
+    CoherenceEvaluator,       # Is answer logically coherent?
+    FluencyEvaluator,         # Is answer well-written?
+    GroundednessEvaluator,    # Is answer grounded in context?
+    SimilarityEvaluator,      # Similarity to ground truth
+    F1ScoreEvaluator,         # F1 score vs ground truth
+    ViolenceEvaluator,        # Safety: violence detection
+    HateUnfairnessEvaluator,  # Safety: hate speech detection
+    evaluate,                 # Run batch evaluation
+)
+
+model_config = {
+    "azure_endpoint": "https://<resource>.openai.azure.com/",
+    "api_key": "<key>",
+    "azure_deployment": "gpt-4o",
+    "api_version": "2024-10-21",
+}
+
+relevance_eval = RelevanceEvaluator(model_config=model_config)
+groundedness_eval = GroundednessEvaluator(model_config=model_config)
+
+# Single evaluation
+score = relevance_eval(
+    query="What is RAG?",
+    response="RAG stands for Retrieval Augmented Generation...",
+)
+print(score)  # {'relevance': 4.0}  # 1–5 scale
+
+# Batch evaluation
+results = evaluate(
+    data="eval_data.jsonl",
+    evaluators={
+        "relevance": relevance_eval,
+        "groundedness": groundedness_eval,
+    },
+    output_path="./eval_results.json",
+)
+```
+
+---
+
+### Langfuse — Open-Source Observability
+
+Self-hostable alternative to LangSmith — traces, evals, prompt management, cost tracking.
+
+```bash
+pip install langfuse
+```
+
+```python
+from langfuse.callback import CallbackHandler  # LangChain integration
+
+langfuse_handler = CallbackHandler(
+    public_key="<public-key>",
+    secret_key="<secret-key>",
+    host="https://cloud.langfuse.com",  # or self-hosted URL
+)
+
+# Pass as callback to any LangChain / LangGraph call
+result = rag_chain.invoke(
+    {"question": "What is RAG?"},
+    config={"callbacks": [langfuse_handler]},
+)
+```
+
+---
+
+### Evaluation Metrics Comparison
+
+| Framework | Type | Key Strength | Best For |
+|---|---|---|---|
+| **RAGAS** | Open source | 4 core RAG metrics, no reference needed | Quick RAG benchmarking |
+| **DeepEval** | Open source | 50+ metrics, pytest integration, CI/CD gating | LLM unit testing in pipelines |
+| **TruLens** | Open source | Inline tracing + evaluation, production monitoring | Real-time eval in production |
+| **LangSmith** | Managed (paid) | Zero-config tracing, dataset management | LangChain/LangGraph teams |
+| **Azure AI Evaluation** | Managed (Azure) | Safety + quality evals, Azure-native | Azure production deployments |
+| **Langfuse** | Open source + cloud | Self-hostable, cost tracking, prompt versioning | Privacy-sensitive / self-hosted |
+| **MLflow** | Open source | Integrates all above, experiment tracking | ML + LLM unified workflow |
+
+---
+
+## Part 9 — Advanced LangChain Retrievers
+
+Beyond basic vector similarity search, LangChain provides advanced retrievers that improve retrieval quality significantly.
+
+---
+
+### MultiQueryRetriever — Generate Multiple Query Variations
+
+Problem: A single embedding query can miss relevant documents due to wording differences.
+Solution: Use an LLM to generate 3–5 rephrased versions of the query, retrieve for each, deduplicate.
+
+```python
+from langchain.retrievers.multi_query import MultiQueryRetriever
+
+retriever = MultiQueryRetriever.from_llm(
+    retriever=vector_store.as_retriever(),
+    llm=llm,
+)
+
+# Internally generates: "What is RAG?", "Explain retrieval augmented generation",
+#                        "How does RAG work?", etc.
+docs = retriever.invoke("What is RAG?")
+```
+
+---
+
+### ParentDocumentRetriever — Small Chunks, Big Context
+
+Problem: Small chunks = precise search, but loses surrounding context for the LLM.
+Solution: Index small chunks for search, but return the full parent document when a chunk matches.
+
+```python
+from langchain.retrievers import ParentDocumentRetriever
+from langchain.storage import InMemoryStore
+from langchain_text_splitters import RecursiveCharacterTextSplitter
+
+# Small chunks for precise search
+child_splitter = RecursiveCharacterTextSplitter(chunk_size=200)
+# Large chunks returned to LLM
+parent_splitter = RecursiveCharacterTextSplitter(chunk_size=2000)
+
+store = InMemoryStore()  # or RedisStore for production
+
+retriever = ParentDocumentRetriever(
+    vectorstore=vector_store,
+    docstore=store,
+    child_splitter=child_splitter,
+    parent_splitter=parent_splitter,
+)
+retriever.add_documents(docs)
+results = retriever.invoke("What is RAG?")  # Returns full parent chunks
+```
+
+---
+
+### EnsembleRetriever — Hybrid Search (BM25 + Vector)
+
+Combines keyword search (BM25 — finds exact words) with semantic search (vectors — finds meaning). Best of both worlds.
+
+```python
+from langchain.retrievers import EnsembleRetriever
+from langchain_community.retrievers import BM25Retriever
+
+bm25_retriever = BM25Retriever.from_documents(docs)   # Keyword search
+bm25_retriever.k = 5
+
+vector_retriever = vector_store.as_retriever(search_kwargs={"k": 5})  # Semantic search
+
+# RRF (Reciprocal Rank Fusion) merges and re-ranks results
+ensemble = EnsembleRetriever(
+    retrievers=[bm25_retriever, vector_retriever],
+    weights=[0.4, 0.6],   # 40% keyword weight, 60% semantic weight
+)
+docs = ensemble.invoke("What is RAG?")
+```
+
+---
+
+### ContextualCompressionRetriever — Filter Irrelevant Content
+
+Retrieves documents then compresses them — only keeps the parts that are actually relevant to the query.
+
+```python
+from langchain.retrievers import ContextualCompressionRetriever
+from langchain.retrievers.document_compressors import (
+    LLMChainExtractor,    # Use LLM to extract relevant sentences
+    EmbeddingsFilter,     # Use embeddings similarity to filter chunks
+    DocumentCompressorPipeline,  # Chain multiple compressors
+)
+
+compressor = LLMChainExtractor.from_llm(llm)
+
+# or cheaper alternative using embeddings
+compressor = EmbeddingsFilter(embeddings=embeddings, similarity_threshold=0.76)
+
+compression_retriever = ContextualCompressionRetriever(
+    base_compressor=compressor,
+    base_retriever=vector_store.as_retriever(search_kwargs={"k": 6}),
+)
+docs = compression_retriever.invoke("What is RAG?")
+# Returns only the relevant sentences, not full chunks
+```
+
+---
+
+### SelfQueryRetriever — Natural Language → Metadata Filters
+
+Automatically translates user query into both a semantic search AND metadata filters.
+
+```python
+from langchain.retrievers.self_query.base import SelfQueryRetriever
+from langchain.chains.query_constructor.base import AttributeInfo
+
+metadata_field_info = [
+    AttributeInfo(name="source", description="PDF filename", type="string"),
+    AttributeInfo(name="page", description="Page number", type="integer"),
+    AttributeInfo(name="year", description="Publication year", type="integer"),
+]
+
+retriever = SelfQueryRetriever.from_llm(
+    llm=llm,
+    vectorstore=vector_store,
+    document_contents="Company policy documents",
+    metadata_field_info=metadata_field_info,
+)
+
+# "Find refund policies from 2024" → filter: year=2024 + search: "refund policy"
+docs = retriever.invoke("Find refund policies from 2024")
+```
+
+---
+
+### Retriever Quick Reference
+
+| Retriever | Solves | Best For |
+|---|---|---|
+| `MultiQueryRetriever` | Single query misses relevant docs | General RAG quality boost |
+| `ParentDocumentRetriever` | Small chunks lose context | Long documents, precise but contextual |
+| `EnsembleRetriever` | Semantic search misses keyword matches | Hybrid search, production RAG |
+| `ContextualCompressionRetriever` | Retrieved docs have too much noise | Reducing tokens sent to LLM |
+| `SelfQueryRetriever` | User queries need metadata filtering | Structured document collections |
+
+---
+
+## Part 10 — Advanced LangGraph Patterns
+
+---
+
+### Subgraphs — Modular Agents
+
+A compiled graph can be used as a **node** inside another graph. This enables modular, reusable agent components.
+
+```python
+from langgraph.graph import StateGraph, START, END
+
+# Sub-agent: handles only retrieval
+retrieval_graph = StateGraph(RetrievalState)
+retrieval_graph.add_node("embed_query", embed_fn)
+retrieval_graph.add_node("search_db", search_fn)
+retrieval_graph.add_edge(START, "embed_query")
+retrieval_graph.add_edge("embed_query", "search_db")
+retrieval_graph.add_edge("search_db", END)
+retrieval_subgraph = retrieval_graph.compile()
+
+# Parent graph uses retrieval subgraph as a node
+main_graph = StateGraph(MainState)
+main_graph.add_node("retrieve", retrieval_subgraph)  # subgraph as node
+main_graph.add_node("generate", generate_fn)
+main_graph.add_edge(START, "retrieve")
+main_graph.add_edge("retrieve", "generate")
+main_graph.add_edge("generate", END)
+```
+
+---
+
+### Parallel Node Execution
+
+Send control to multiple nodes simultaneously and wait for all to finish before continuing.
+
+```python
+from langgraph.graph import StateGraph, START, END
+
+# Both search_web and search_db run in parallel
+graph.add_node("search_web", web_search_fn)
+graph.add_node("search_db", db_search_fn)
+graph.add_node("merge_results", merge_fn)
+
+graph.add_edge(START, "search_web")       # fork
+graph.add_edge(START, "search_db")        # fork
+graph.add_edge("search_web", "merge_results")   # join
+graph.add_edge("search_db", "merge_results")    # join
+graph.add_edge("merge_results", END)
+```
+
+---
+
+### Streaming LangGraph Output
+
+Stream tokens and state updates to the client in real time.
+
+```python
+# Stream LLM tokens
+async for chunk in app.astream({"messages": [HumanMessage("Hello")]}, config):
+    if chunk.get("generate"):
+        print(chunk["generate"]["messages"][-1].content, end="", flush=True)
+
+# Stream all events (node start/end, LLM tokens, tool calls)
+async for event in app.astream_events({"messages": [HumanMessage("Hello")]}, config, version="v2"):
+    if event["event"] == "on_chat_model_stream":
+        print(event["data"]["chunk"].content, end="", flush=True)
+```
+
+---
+
+### LangGraph Send API — Dynamic Parallel Branches
+
+Dynamically spawn parallel branches at runtime (e.g., process each document in parallel).
+
+```python
+from langgraph.types import Send
+
+def dispatch_docs(state):
+    # Launch one "process_doc" node per document — all run in parallel
+    return [Send("process_doc", {"doc": doc}) for doc in state["documents"]]
+
+graph.add_conditional_edges("load_docs", dispatch_docs)
+```
+
+---
+
+## Part 11 — Azure-Specific Components
+
+---
+
+### Azure AI Search — Vector + Hybrid Search
+
+```bash
+pip install langchain-community azure-search-documents
+```
+
+```python
+from langchain_community.vectorstores import AzureSearch
+from azure.search.documents.indexes.models import (
+    SearchableField,
+    SearchField,
+    SearchFieldDataType,
+    SimpleField,
+)
+
+vector_store = AzureSearch(
+    azure_search_endpoint="https://<service>.search.windows.net",
+    azure_search_key="<admin-key>",
+    index_name="my-rag-index",
+    embedding_function=embeddings.embed_query,
+    search_type="hybrid",   # "similarity" | "hybrid" | "semantic_hybrid"
+)
+
+# Hybrid search = vector similarity + BM25 keyword in one query
+docs = vector_store.similarity_search("What is RAG?", k=5)
+```
+
+---
+
+### Azure AI Document Intelligence
+
+```bash
+pip install azure-ai-documentintelligence langchain-community
+```
+
+```python
+from langchain_community.document_loaders import AzureAIDocumentIntelligenceLoader
+
+loader = AzureAIDocumentIntelligenceLoader(
+    api_endpoint="https://<resource>.cognitiveservices.azure.com/",
+    api_key="<key>",
+    file_path="./document.pdf",
+    api_model="prebuilt-layout",   # Extracts tables, paragraphs, headers
+)
+docs = loader.load()
+```
+
+---
+
+### Azure Key Vault — Secret Management
+
+```bash
+pip install azure-keyvault-secrets azure-identity
+```
+
+```python
+from azure.keyvault.secrets import SecretClient
+from azure.identity import DefaultAzureCredential
+
+credential = DefaultAzureCredential()  # Uses managed identity in production
+client = SecretClient(vault_url="https://<vault>.vault.azure.net/", credential=credential)
+
+api_key = client.get_secret("openai-api-key").value
+```
+
+---
+
+### Azure Monitor + OpenTelemetry — LLM Tracing
+
+```bash
+pip install azure-monitor-opentelemetry opentelemetry-sdk
+```
+
+```python
+from azure.monitor.opentelemetry import configure_azure_monitor
+from opentelemetry import trace
+
+configure_azure_monitor(
+    connection_string="InstrumentationKey=<key>",
+)
+
+tracer = trace.get_tracer(__name__)
+
+with tracer.start_as_current_span("rag-pipeline"):
+    result = rag_chain.invoke({"question": "What is RAG?"})
+```
+
+---
+
+### Azure Cosmos DB — Chat History at Scale
+
+```bash
+pip install langchain-community azure-cosmos
+```
+
+```python
+from langchain_community.chat_message_histories import CosmosDBChatMessageHistory
+
+history = CosmosDBChatMessageHistory(
+    cosmos_endpoint="https://<account>.documents.azure.com:443/",
+    cosmos_database="chat_db",
+    cosmos_container="sessions",
+    session_id="user-123-session-456",
+    user_id="user-123",
+)
+```
+
+---
+
+## Part 12 — Observability & Tracing Quick Reference
+
+| Tool | Type | Key Feature | Setup |
+|---|---|---|---|
+| **LangSmith** | Managed SaaS | Zero-config LangChain tracing, eval datasets | Set env vars |
+| **Langfuse** | OSS + Cloud | Self-hostable, prompt management, cost tracking | `CallbackHandler` |
+| **Phoenix (Arize)** | OSS | Local UI, OTEL-native, dataset analysis | `pip install arize-phoenix` |
+| **MLflow** | OSS | Unified ML + LLM tracking, integrates RAGAS/DeepEval | `mlflow.langchain.autolog()` |
+| **Azure Monitor** | Managed (Azure) | OTEL traces to Application Insights | `configure_azure_monitor()` |
+| **W&B Weave** | Managed | Weights & Biases LLM tracing | `weave.init("project")` |
+
+```python
+# Enable tracing — pick ONE of these:
+
+# LangSmith (env vars only)
+import os
+os.environ["LANGCHAIN_TRACING_V2"] = "true"
+os.environ["LANGCHAIN_API_KEY"] = "<key>"
+
+# Langfuse (callback)
+from langfuse.callback import CallbackHandler
+handler = CallbackHandler(public_key="...", secret_key="...")
+chain.invoke(input, config={"callbacks": [handler]})
+
+# MLflow
+import mlflow
+mlflow.langchain.autolog()
+
+# Phoenix (local UI at localhost:6006)
+import phoenix as px
+px.launch_app()
+from phoenix.otel import register
+register()
+```
