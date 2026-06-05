@@ -207,6 +207,34 @@
 
 ## 7. API Rate Limits
 
+### Key Terms
+
+| Term | Full Form | Meaning |
+|---|---|---|
+| **TPM** | Tokens Per Minute | Total number of tokens (input + output combined) you can send/receive across all requests in a 60-second rolling window. Hitting this limit returns a **429 error** even if your RPM is fine. |
+| **RPM** | Requests Per Minute | Total number of individual API calls you can make in a 60-second rolling window. One call = one request, regardless of how many tokens it contains. |
+| **TPD** | Tokens Per Day | Total tokens allowed across all requests in a 24-hour period. A daily hard cap — once hit, all requests are blocked until the next day resets. Common on free tiers. |
+
+**How they interact:**
+```
+You have: TPM = 40,000 · RPM = 500 · TPD = 300,000
+
+Send 10 requests × 4,000 tokens each in one minute
+→ Uses 40,000 TPM  ✅ (at limit)
+→ Uses 10 RPM      ✅ (fine)
+→ Uses 40,000 TPD  ✅ (fine for now, 260,000 remaining today)
+
+Send 1 request × 50,000 tokens
+→ 429 error — exceeds TPM limit even though RPM is fine
+```
+
+**Practical tips:**
+- **429 on TPM** → your prompts are too large or too frequent — reduce chunk size or add delays
+- **429 on RPM** → you're making too many calls — batch requests or add rate limiting in code
+- **429 on TPD** → you've exhausted the daily budget — upgrade tier or wait for reset
+
+---
+
 ### Anthropic (Claude API)
 
 | Tier | Model | RPM | TPM | TPD |
