@@ -70,17 +70,34 @@
 
 ---
 
-## 3. Google Gemini Models
+## 3. Google Gemini Models (Latest 2026)
 
-| Model | Context Window | Max Output | Best Use Case |
-|---|---|---|---|
-| Gemini 2.0 Flash | 1M tokens | 8K tokens | Fast, large-document processing |
-| Gemini 1.5 Pro | 2M tokens | 8K tokens | Largest context — full book / codebase analysis |
-| Gemini 1.5 Flash | 1M tokens | 8K tokens | Fast and cheap large-context tasks |
+### Flagship / Frontier Models
+
+| Model | Context Window | Max Output | Price (Input / Output) | Best Use Case |
+|---|---|---|---|---|
+| **Gemini 3.5 Flash** | 1M tokens | 66K tokens | $1.50 / $9.00 | Latest agentic model — frontier-level multi-step tasks, coding, 4× speed |
+| **Gemini 3.1 Pro** | 2M tokens | 66K tokens | $2 / $12 (<200K ctx) · $4 / $18 (>200K) | Most capable — complex reasoning, broad world knowledge |
+| **Gemini 3.1 Flash** | 1M tokens | 66K tokens | $0.75 / $4.50 | Balanced speed + quality — everyday tasks, agents |
+| **Gemini 3.1 Flash-Lite** | 1M tokens | 66K tokens | $0.25 / $1.50 | Cheapest Gemini — high-volume, cost-effective tasks (2.5× faster than 2.5 Flash) |
+| Gemini 2.0 Flash | 1M tokens | 8K tokens | $0.10 / $0.40 | Previous gen fast model (still in wide use) |
+| Gemini 1.5 Pro | 2M tokens | 8K tokens | $1.25 / $5 | Previous gen 2M-context model |
+
+### Specialized / Media Models
+
+| Model | Type | Best Use Case |
+|---|---|---|
+| **Gemini 3.1 Flash Live** | Real-time audio + video streaming | Ultra-low latency live conversations, bidirectional video agents |
+| **Imagen 4** | Text-to-image (4K) | Ultra-fast high-res image generation, best text rendering |
+| **Veo 3.1** | Text-to-video | State-of-the-art cinematic video generation |
+| **Nano Banana 2** | On-device vision | High-efficiency visual creation on-device (edge / mobile) |
 
 **Notes:**
-- Gemini 1.5 Pro's **2M context** is among the largest publicly available
-- Native multimodal: text, image, video, audio
+- Gemini 3.1 Pro's **2M context** is the largest of any production frontier model (as of mid-2026)
+- Batch inference on all Gemini models: **50% off**
+- Context caching: **up to 90% off** repeated input tokens
+- Native multimodal: text, image, video, audio across the entire Gemini 3.x family
+- Gemini 3.5 Flash is the recommended default for most new GCP workloads in 2026
 
 ---
 
@@ -321,8 +338,10 @@ Total context = system_prompt + chat_history + rag_chunks + user_query + buffer
 ## 12. Quick Reference — Context Limits at a Glance
 
 ```
-2,000,000  tokens  →  Gemini 1.5 Pro                     (~1,500,000 words)
+2,000,000  tokens  →  Gemini 3.1 Pro                     (~1,500,000 words)
+2,000,000  tokens  →  Gemini 1.5 Pro (prev gen)          (~1,500,000 words)
 1,050,000  tokens  →  GPT-5.5, GPT-5.5 Pro               (~787,500 words)
+1,000,000  tokens  →  Gemini 3.5 Flash, 3.1 Flash        (~750,000 words)
 1,000,000  tokens  →  Claude Opus 4.6/4.7/4.8            (~750,000 words)
 1,000,000  tokens  →  Claude Sonnet 4.6                   (~750,000 words)
 1,000,000  tokens  →  GPT-5.4, GPT-5.4 Pro               (~750,000 words)
@@ -724,8 +743,14 @@ User Query
 | **Claude Opus 4.7 / 4.8** | ❌ | ✅ | ✅ (via Model Garden) | ❌ |
 | **Claude Sonnet 4.6** | ❌ | ✅ | ✅ (via Model Garden) | ❌ |
 | **Claude Haiku 4.5** | ❌ | ✅ | ✅ (via Model Garden) | ❌ |
-| **Gemini 2.0 Flash** | ❌ | ❌ | ✅ | ❌ |
-| **Gemini 1.5 Pro (2M ctx)** | ❌ | ❌ | ✅ | ❌ |
+| **Gemini 3.5 Flash** ⭐ | ❌ | ❌ | ✅ | ❌ |
+| **Gemini 3.1 Pro (2M ctx)** | ❌ | ❌ | ✅ | ❌ |
+| **Gemini 3.1 Flash** | ❌ | ❌ | ✅ | ❌ |
+| **Gemini 3.1 Flash-Lite** | ❌ | ❌ | ✅ | ❌ |
+| **Gemini 3.1 Flash Live** | ❌ | ❌ | ✅ | ❌ |
+| **Imagen 4** (image gen) | ❌ | ❌ | ✅ | ❌ |
+| **Veo 3.1** (video gen) | ❌ | ❌ | ✅ | ❌ |
+| Gemini 2.0 Flash (prev gen) | ❌ | ❌ | ✅ | ❌ |
 | **Amazon Nova Pro / Lite / Micro** | ❌ | ✅ | ❌ | ❌ |
 | **Phi-4 (Microsoft SLM)** | ✅ | ❌ | ❌ | ✅ (HuggingFace) |
 | **Llama 4 Maverick / Scout** | ✅ | ✅ | ✅ (Model Garden) | ✅ (Ollama) |
@@ -797,8 +822,12 @@ User Query
 | **Nova Pro** | ❌ | $0.80 / $3.20 | ❌ | ❌ |
 | **Nova Lite** | ❌ | $0.06 / $0.24 | ❌ | ❌ |
 | **Nova Micro** | ❌ | $0.035 / $0.14 | ❌ | ❌ |
-| **Gemini 2.0 Flash** | ❌ | ❌ | $0.10 / $0.40 | ❌ |
-| **Gemini 1.5 Pro** | ❌ | ❌ | $1.25 / $5 | ❌ |
+| **Gemini 3.5 Flash** ⭐ | ❌ | ❌ | $1.50 / $9.00 | ❌ |
+| **Gemini 3.1 Pro** | ❌ | ❌ | $2 / $12 · $4 / $18 (>200K) | ❌ |
+| **Gemini 3.1 Flash** | ❌ | ❌ | $0.75 / $4.50 | ❌ |
+| **Gemini 3.1 Flash-Lite** | ❌ | ❌ | $0.25 / $1.50 | ❌ |
+| Gemini 2.0 Flash (prev gen) | ❌ | ❌ | $0.10 / $0.40 | ❌ |
+| Gemini 1.5 Pro (prev gen) | ❌ | ❌ | $1.25 / $5 | ❌ |
 | **Llama 3.3 70B** | Pay-as-you-go | $0.72 / $0.72 | ~$0.50 / $0.50 | **FREE** (self-hosted) |
 | **Phi-4 (14B)** | Pay-as-you-go | ❌ | ❌ | **FREE** (Ollama/HF) |
 | **Qwen 3.6 / Gemma 4** | ❌ | ❌ | Gemma: included | **FREE** (Ollama/HF) |
@@ -819,7 +848,7 @@ User Query
 | **Data-heavy workloads, BigQuery, GCS** | GCP Vertex AI | Native BigQuery ML, GCS, Dataflow |
 | **Best reasoning model (Claude)** | AWS Bedrock or GCP | Claude only available via Bedrock/Vertex |
 | **Cheapest production LLM** | AWS Bedrock (Nova Micro) | $0.035/$0.14 per 1M tokens |
-| **Longest context (2M tokens)** | GCP Vertex AI | Gemini 1.5 Pro only on GCP |
+| **Longest context (2M tokens)** | GCP Vertex AI | Gemini 3.1 Pro — 2M context, largest in production |
 | **Local dev / no cloud costs** | Ollama + Chroma | Fully free, runs on laptop |
 | **Privacy / on-prem / regulated data** | Ollama + self-hosted Qdrant | No data leaves your infrastructure |
 | **Multilingual RAG** | BGE-M3 + any platform | Best multilingual open embedding |
@@ -827,7 +856,9 @@ User Query
 | **Enterprise RAG, full managed** | Azure AI Search + GPT | Hybrid search, managed, enterprise SLA |
 | **Edge / mobile deployment** | Phi-4 or Gemma 4 E4B (Ollama) | Runs on consumer hardware |
 | **Agentic coding / long-horizon tasks** | Claude Opus 4.8 (Bedrock) | Best for autonomous multi-step agents |
-| **Image + text multimodal** | GPT-5.5 / Gemini 1.5 Pro / Nova Pro | Native vision support |
+| **Image + text multimodal** | GPT-5.5 / Gemini 3.5 Flash / Nova Pro | Native vision support |
+| **Real-time voice / video agent** | GCP Vertex AI (Gemini 3.1 Flash Live) | Ultra-low latency bidirectional audio+video |
+| **AI video / image generation** | GCP Vertex AI (Imagen 4 / Veo 3.1) | Best-in-class media generation on cloud |
 | **Cost prototyping** | Nova Micro / GPT-5.4 Nano / Haiku | Sub-$0.20 input per 1M tokens |
 | **Fine-tuning your own model** | Azure AI Foundry / Vertex AI | Managed fine-tuning pipelines |
 
@@ -839,7 +870,7 @@ User Query
 |---|---|
 | **Azure AI Foundry** | Best for Microsoft-ecosystem enterprises — GPT-5.x, Phi-4, managed RAG, compliance |
 | **AWS Bedrock** | Best for AWS-native teams — multi-model (Claude + Nova + Llama), managed agents, cheapest models |
-| **GCP Vertex AI** | Best for data-heavy GCP teams — Gemini's 2M context, BigQuery integration, Imagen |
+| **GCP Vertex AI** | Best for data-heavy GCP teams — Gemini 3.5 Flash (agentic), 3.1 Pro (2M ctx), Imagen 4, Veo 3.1 |
 | **Ollama / HuggingFace** | Best for local dev, privacy, zero cost — all open-source models, full control |
 
 ---
