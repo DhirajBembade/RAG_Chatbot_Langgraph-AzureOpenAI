@@ -1,6 +1,6 @@
 # Azure Agentic RAG Chatbot
 
-A conversational AI chatbot built with **LangGraph** and **Azure OpenAI** that can search your uploaded PDF documents, browse the web, look up Wikipedia, fetch weather, and check live stock prices — all from a single Streamlit interface.
+A conversational AI chatbot built with **LangGraph**, **LangSmith** and **Azure OpenAI** that can search your uploaded PDF documents, browse the web, look up Wikipedia, fetch weather, and check live stock prices — all from a single Streamlit interface.
 
 ## Features
 
