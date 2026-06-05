@@ -32,7 +32,7 @@ A conversational AI chatbot built with **LangGraph**, **LangSmith** and **Azure 
 ## Prerequisites
 
 - Python 3.10+
-- An Azure OpenAI resource with a **chat** deployment (e.g. `gpt-5.1`) and an **embeddings** deployment (e.g. `text-embedding-3-small`)
+- An Azure OpenAI resource with a **chat** deployment (e.g. `gpt-5.5`, `gpt-5.4-mini`) and an **embeddings** deployment (e.g. `text-embedding-3-small`)
 - (Optional) A free [Alpha Vantage API key](https://www.alphavantage.co/support/#api-key) for stock prices
 - (Optional) A [LangSmith API key](https://smith.langchain.com/) for tracing
 
