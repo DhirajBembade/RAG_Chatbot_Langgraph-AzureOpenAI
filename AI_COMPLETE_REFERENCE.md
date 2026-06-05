@@ -708,7 +708,168 @@ User Query
 
 ---
 
+## 18. Platform Mega-Comparison — Azure vs AWS vs GCP vs Open Source
+
+> Quick-read interview reference. One table per topic, then use-case guide at the end.
+
+---
+
+### 18A. LLM Models by Platform
+
+| Model | Azure AI Foundry | AWS Bedrock | GCP Vertex AI | Open Source (Ollama / HF) |
+|---|---|---|---|---|
+| **GPT-5.5 / 5.5 Pro** | ✅ | ❌ | ❌ | ❌ |
+| **GPT-5.4 / Mini / Nano** | ✅ | ❌ | ❌ | ❌ |
+| **GPT-4o** | ✅ | ❌ | ❌ | ❌ |
+| **Claude Opus 4.7 / 4.8** | ❌ | ✅ | ✅ (via Model Garden) | ❌ |
+| **Claude Sonnet 4.6** | ❌ | ✅ | ✅ (via Model Garden) | ❌ |
+| **Claude Haiku 4.5** | ❌ | ✅ | ✅ (via Model Garden) | ❌ |
+| **Gemini 2.0 Flash** | ❌ | ❌ | ✅ | ❌ |
+| **Gemini 1.5 Pro (2M ctx)** | ❌ | ❌ | ✅ | ❌ |
+| **Amazon Nova Pro / Lite / Micro** | ❌ | ✅ | ❌ | ❌ |
+| **Phi-4 (Microsoft SLM)** | ✅ | ❌ | ❌ | ✅ (HuggingFace) |
+| **Llama 4 Maverick / Scout** | ✅ | ✅ | ✅ (Model Garden) | ✅ (Ollama) |
+| **Llama 3.3 70B** | ✅ | ✅ | ✅ | ✅ (Ollama) |
+| **Mistral Large** | ✅ | ✅ | ✅ | ✅ (Ollama) |
+| **Qwen 3.5 / 3.6** | ❌ | ❌ | ❌ | ✅ (Ollama / HF) |
+| **Gemma 4** | ❌ | ❌ | ✅ (native) | ✅ (Ollama / HF) |
+| **Command R / R+** | ❌ | ✅ | ❌ | ✅ (HF) |
+
+---
+
+### 18B. Embedding Models by Platform
+
+| Model | Provider | Dimensions | Context | Price / 1M tokens | Platform |
+|---|---|---|---|---|---|
+| **text-embedding-3-small** | OpenAI | 1,536 | 8K | $0.02 | Azure / OpenAI API |
+| **text-embedding-3-large** | OpenAI | 3,072 | 8K | $0.13 | Azure / OpenAI API |
+| **text-embedding-ada-002** | OpenAI | 1,536 | 8K | $0.10 | Azure (legacy) |
+| **Amazon Titan Embeddings V2** | AWS | 1,024 | 8K | $0.10 | AWS Bedrock |
+| **Cohere Embed v3** | Cohere | 1,024 | 512 | $0.10 | AWS Bedrock / API |
+| **text-embedding-004** | Google | 768 | 2K | $0.10 | GCP Vertex AI |
+| **Gemini Embedding** | Google | 3,072 | 8K | $0.15 | GCP Vertex AI |
+| **all-MiniLM-L6-v2** | HuggingFace | 384 | 512 | **FREE** | Ollama / HF / local |
+| **all-MiniLM-L12-v2** | HuggingFace | 384 | 512 | **FREE** | Ollama / HF / local |
+| **all-mpnet-base-v2** | HuggingFace | 768 | 512 | **FREE** | Ollama / HF / local |
+| **bge-m3** | BAAI / HF | 1,024 | 8K | **FREE** | Ollama / HF / local |
+| **bge-large-en-v1.5** | BAAI / HF | 1,024 | 512 | **FREE** | HF / local |
+| **nomic-embed-text-v1.5** | Nomic / HF | 768 | 8K | **FREE** | Ollama / HF / local |
+| **Qwen3-Embedding** | Alibaba / HF | 1,024–7K | 32K | **FREE** | HF / local |
+| **e5-large-v2** | Microsoft / HF | 1,024 | 512 | **FREE** | HF / local |
+
+---
+
+### 18C. Services — LLM, Vector Store, Storage, Orchestration
+
+| Category | Azure | AWS | GCP | Open Source |
+|---|---|---|---|---|
+| **LLM API** | Azure AI Foundry / Azure OpenAI | AWS Bedrock | Vertex AI (Gemini API) | Ollama, vLLM, HuggingFace Inference |
+| **SLM / Edge LLM** | Phi-4 on Azure | Nova Micro | Gemma 4 | Ollama (Phi, Gemma, Qwen) |
+| **Vector Store** | Azure AI Search | Amazon OpenSearch / Aurora pgvector | Vertex AI Vector Search / AlloyDB pgvector | Qdrant, Chroma, FAISS, pgvector |
+| **Managed RAG** | Azure AI Search + Prompt Flow | Bedrock Knowledge Bases | Vertex AI RAG Engine | LangChain + Chroma / Qdrant |
+| **Agent Framework** | Azure AI Foundry Agents | Bedrock Agents | Vertex AI Agents / Agentspace | LangGraph, AutoGen, CrewAI |
+| **Embedding Service** | Azure OpenAI (text-embedding-3) | Bedrock (Titan / Cohere Embed) | Vertex AI (text-embedding-004) | HuggingFace local models |
+| **Document Extraction** | Azure AI Document Intelligence | Textract | Document AI | Docling, Unstructured |
+| **Object / File Storage** | Azure Blob Storage | Amazon S3 | Google Cloud Storage (GCS) | MinIO (S3-compatible, self-hosted) |
+| **SQL Database** | Azure SQL / PostgreSQL Flexible Server | Amazon RDS / Aurora | Cloud SQL / AlloyDB | PostgreSQL, SQLite, MySQL |
+| **NoSQL Database** | Azure Cosmos DB | Amazon DynamoDB | Firestore / Bigtable | MongoDB, Redis |
+| **Cache** | Azure Cache for Redis | ElastiCache (Redis) | Memorystore | Redis (self-hosted) |
+| **Search (Hybrid)** | Azure AI Search | Amazon OpenSearch | Vertex AI Search | Elasticsearch / OpenSearch |
+| **Monitoring / Tracing** | Azure Monitor, App Insights | Amazon CloudWatch | Cloud Monitoring | LangSmith, Phoenix, Prometheus |
+| **Content Safety** | Azure Content Safety | Bedrock Guardrails | Vertex AI Safety | Llama Guard (open source) |
+| **Speech (STT/TTS)** | Azure AI Speech | Amazon Transcribe / Polly | Speech-to-Text / Text-to-Speech | Whisper (OpenAI, open source) |
+| **Image Generation** | Azure DALL-E | Bedrock (Stability AI) | Imagen on Vertex AI | Stable Diffusion (local) |
+
+---
+
+### 18D. Pricing Snapshot — LLM Inference (per 1M tokens, Input / Output)
+
+| Model | Azure / OpenAI | AWS Bedrock | GCP Vertex AI | Open Source |
+|---|---|---|---|---|
+| **GPT-5.5** | ~$15 / $60 | ❌ | ❌ | ❌ |
+| **GPT-5.4** | $1.25 / $10 | ❌ | ❌ | ❌ |
+| **GPT-5.4 Mini** | $0.75 / $4.50 | ❌ | ❌ | ❌ |
+| **GPT-5.4 Nano** | $0.20 / $1.25 | ❌ | ❌ | ❌ |
+| **GPT-4o** | $2.50 / $10 | ❌ | ❌ | ❌ |
+| **Claude Opus 4.7** | ❌ | $5 / $25 | ~$5 / $25 | ❌ |
+| **Claude Sonnet 4.6** | ❌ | $3 / $15 | ~$3 / $15 | ❌ |
+| **Claude Haiku 4.5** | ❌ | $1 / $5 | ~$1 / $5 | ❌ |
+| **Nova Pro** | ❌ | $0.80 / $3.20 | ❌ | ❌ |
+| **Nova Lite** | ❌ | $0.06 / $0.24 | ❌ | ❌ |
+| **Nova Micro** | ❌ | $0.035 / $0.14 | ❌ | ❌ |
+| **Gemini 2.0 Flash** | ❌ | ❌ | $0.10 / $0.40 | ❌ |
+| **Gemini 1.5 Pro** | ❌ | ❌ | $1.25 / $5 | ❌ |
+| **Llama 3.3 70B** | Pay-as-you-go | $0.72 / $0.72 | ~$0.50 / $0.50 | **FREE** (self-hosted) |
+| **Phi-4 (14B)** | Pay-as-you-go | ❌ | ❌ | **FREE** (Ollama/HF) |
+| **Qwen 3.6 / Gemma 4** | ❌ | ❌ | Gemma: included | **FREE** (Ollama/HF) |
+
+> **Cost-saving features across all cloud providers:**
+> - **Batch inference**: 50% off (all platforms)
+> - **Prompt caching**: up to 90% off repeated input (Anthropic / Azure)
+> - **Spot / preemptible instances**: 60–80% cheaper for self-hosted inference
+
+---
+
+### 18E. When to Use Which Platform — Use Case Guide
+
+| Use Case | Best Platform | Why |
+|---|---|---|
+| **Enterprise Microsoft stack (Teams, Office 365)** | Azure AI Foundry | Native AD, Compliance, Copilot integration |
+| **Already on AWS (Lambda, S3, EC2)** | AWS Bedrock | IAM roles, VPC, S3 native, no extra auth |
+| **Data-heavy workloads, BigQuery, GCS** | GCP Vertex AI | Native BigQuery ML, GCS, Dataflow |
+| **Best reasoning model (Claude)** | AWS Bedrock or GCP | Claude only available via Bedrock/Vertex |
+| **Cheapest production LLM** | AWS Bedrock (Nova Micro) | $0.035/$0.14 per 1M tokens |
+| **Longest context (2M tokens)** | GCP Vertex AI | Gemini 1.5 Pro only on GCP |
+| **Local dev / no cloud costs** | Ollama + Chroma | Fully free, runs on laptop |
+| **Privacy / on-prem / regulated data** | Ollama + self-hosted Qdrant | No data leaves your infrastructure |
+| **Multilingual RAG** | BGE-M3 + any platform | Best multilingual open embedding |
+| **Production RAG, team of 1–5** | Qdrant + Claude / GPT | Best latency, free self-host vector DB |
+| **Enterprise RAG, full managed** | Azure AI Search + GPT | Hybrid search, managed, enterprise SLA |
+| **Edge / mobile deployment** | Phi-4 or Gemma 4 E4B (Ollama) | Runs on consumer hardware |
+| **Agentic coding / long-horizon tasks** | Claude Opus 4.8 (Bedrock) | Best for autonomous multi-step agents |
+| **Image + text multimodal** | GPT-5.5 / Gemini 1.5 Pro / Nova Pro | Native vision support |
+| **Cost prototyping** | Nova Micro / GPT-5.4 Nano / Haiku | Sub-$0.20 input per 1M tokens |
+| **Fine-tuning your own model** | Azure AI Foundry / Vertex AI | Managed fine-tuning pipelines |
+
+---
+
+### 18F. One-Line Summary per Platform
+
+| Platform | One-Line Summary |
+|---|---|
+| **Azure AI Foundry** | Best for Microsoft-ecosystem enterprises — GPT-5.x, Phi-4, managed RAG, compliance |
+| **AWS Bedrock** | Best for AWS-native teams — multi-model (Claude + Nova + Llama), managed agents, cheapest models |
+| **GCP Vertex AI** | Best for data-heavy GCP teams — Gemini's 2M context, BigQuery integration, Imagen |
+| **Ollama / HuggingFace** | Best for local dev, privacy, zero cost — all open-source models, full control |
+
+---
+
 ## Sources
+
+- [Anthropic Claude Models Overview](https://platform.claude.com/docs/en/about-claude/models/overview)
+- [Anthropic Context Windows Docs](https://platform.claude.com/docs/en/build-with-claude/context-windows)
+- [OpenAI GPT-5.4 Model Docs](https://developers.openai.com/api/docs/models/gpt-5.4)
+- [OpenAI GPT-5.4 Mini Docs](https://developers.openai.com/api/docs/models/gpt-5.4-mini)
+- [OpenAI GPT-5.4 Nano Docs](https://developers.openai.com/api/docs/models/gpt-5.4-nano)
+- [OpenAI GPT-5.5 Model Docs](https://developers.openai.com/api/docs/models/gpt-5.5)
+- [OpenAI API Pricing](https://openai.com/api/pricing/)
+- [AWS Bedrock Pricing](https://aws.amazon.com/bedrock/pricing/)
+- [AWS Bedrock Supported Models](https://docs.aws.amazon.com/bedrock/latest/userguide/models-supported.html)
+- [Azure AI Foundry vs Azure OpenAI](https://az365.ai/blog/azure-ai-foundry-vs-azure-openai-2026-decision/)
+- [Azure Foundry Models Catalog](https://learn.microsoft.com/en-us/azure/foundry/foundry-models/concepts/models-sold-directly-by-azure)
+- [Azure OpenAI Pricing](https://azure.microsoft.com/en-us/pricing/details/azure-openai/)
+- [Google Vertex AI Pricing](https://cloud.google.com/vertex-ai/pricing)
+- [Gemini API Pricing](https://ai.google.dev/gemini-api/docs/pricing)
+- [GCP Vector Search & Embeddings](https://medium.com/google-cloud/making-sense-of-vector-search-and-embeddings-across-gcp-products-46cedad68934)
+- [Best Embedding Models 2026 — Milvus Blog](https://milvus.io/blog/choose-embedding-model-rag-2026.md)
+- [Open Source Embedding Models 2026](https://presenc.ai/research/best-open-weight-embedding-models-2026)
+- [Vector Database Comparison 2026](https://reintech.io/blog/vector-database-comparison-2026-pinecone-weaviate-milvus-qdrant-chroma)
+- [HNSW Internals — Pinecone](https://www.pinecone.io/learn/series/faiss/hnsw/)
+- [HNSW Indexing Fundamentals — Qdrant](https://qdrant.tech/course/essentials/day-2/what-is-hnsw/)
+- [Liquid AI LFM2.5-8B-A1B](https://www.liquid.ai/blog/lfm2-5-8b-a1b)
+- [Qwen 3.6 Plus 1M Context](https://www.digitalapplied.com/blog/qwen-3-6-plus-1m-context-always-on-cot-guide)
+- [Gemma 4 Developer Guide](https://lushbinary.com/blog/gemma-4-developer-guide-benchmarks-architecture-local-deployment-2026/)
+- [Azure OpenAI Quotas and Limits](https://learn.microsoft.com/en-us/azure/foundry/openai/quotas-limits)
 
 - [Anthropic Claude Models Overview](https://platform.claude.com/docs/en/about-claude/models/overview)
 - [Anthropic Context Windows Docs](https://platform.claude.com/docs/en/build-with-claude/context-windows)
